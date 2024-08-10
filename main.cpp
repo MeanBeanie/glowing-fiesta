@@ -28,8 +28,10 @@ int main(){
 		return -1;
 	}
 
-	int scrWidth = 120;
-	int scrHeight = 40;
+  const char *brightnessChars = R"($@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'.)";
+
+  int scrWidth = 120;
+  int scrHeight = 40;
 
 	float fov = 3.14159f / 4.0f;
 	const float depth = 32.0f;
@@ -95,7 +97,7 @@ int main(){
 
 			float distToWall = 0.0f;
 			bool hitWall = false;
-			int wallType = 0;
+			int wallType = -1;
 			bool hitEdge = false;
 			
 			float eyeX = sinf(rayAngle);
@@ -113,7 +115,7 @@ int main(){
 				}
 				else{
 					if(map[testY][testX] == '#' || map[testY][testX] == '-'){
-						wallType = map[testY][testX] == '#' ? 0 : 1;
+						wallType = map[testY][testX] == '#' ? 1 : 4;
 						hitWall = true;	
 
 						std::vector<std::pair<float, float>> p;
@@ -155,66 +157,24 @@ int main(){
 					attroff(COLOR_PAIR(3));
 				}
 				else if(y > ceiling && y <= flor){
-					if(wallType == 0){
-						attron(COLOR_PAIR(1));
-						if(hitEdge){
-							mvaddch(y, x, ' ');
-						}
-						else if(distToWall < 0.75f){
-							mvaddch(y, x, ' ' | A_REVERSE);
-						}
-						else if(distToWall >= 0.75f && distToWall < 5*(depth/8)){
-							mvprintw(y, x, "\u2593");
-						}
-						else if(distToWall >= depth/2 && distToWall < 3*(depth/4)){
-							mvprintw(y, x, "\u2592");
-						}
-						else{
-							mvprintw(y, x, "\u2591");
-						}
-						attroff(COLOR_PAIR(1));
-					}
-					else if(wallType == 1){
-						attron(COLOR_PAIR(4));
-						if(hitEdge){
-							mvaddch(y, x, ' ');
-						}
-						else if(distToWall < 0.75f){
-							mvaddch(y, x, ' ' | A_REVERSE);
-						}
-						else if(distToWall >= 0.75f && distToWall < 5*(depth/8)){
-							mvprintw(y, x, "\u2593");
-						}
-						else if(distToWall >= depth/2 && distToWall < 3*(depth/4)){
-							mvprintw(y, x, "\u2592");
-						}
-						else{
-							mvprintw(y, x, "\u2591");
-						}
-						attroff(COLOR_PAIR(4));
-					}
-					else{
+					if(wallType < 0){
 						mvaddch(y, x, ' ');
+					}
+					else {
+						attron(COLOR_PAIR(wallType));
+						if(hitEdge){
+							mvaddch(y, x, ' ');
+						}
+						int brightness = (distToWall / depth) * 68;
+						mvaddch(y, x, brightnessChars[brightness]);	
+						attroff(COLOR_PAIR(wallType));
 					}
 				}
 				else{
 					attron(COLOR_PAIR(2));
 					float b = 1.0f - (((float)y - scrHeight / 2.0f) / ((float)scrHeight / 2.0f));
-					if(b < 0.25f){
-						mvaddch(y, x, ' ' | A_REVERSE);
-					}
-					else if(b < 0.5f){
-						mvprintw(y, x, "\u2593");
-					}
-					else if(b < 0.75f){
-						mvprintw(y, x, "\u2592");
-					}
-					else if(b < 0.9f){
-						mvprintw(y, x, "\u2591");
-					}
-					else{
-						mvaddch(y, x, ' ');
-					}
+					int brightness = b * 68;
+					mvaddch(y, x, brightnessChars[brightness]);	
 					attroff(COLOR_PAIR(2));
 				}
 			}
